@@ -1,25 +1,31 @@
-# Use an official Python runtime as a base image
-FROM python:3.10-slim
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
-# Set the working directory
+# Install Python and dependencies
+RUN apt-get update && apt-get install -y \
+    python3.9 \
+    python3-pip \
+    git
+
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy the requirements file into the container
+# Copy requirements
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies
+RUN pip install -r requirements.txt
 
-# Copy the application code into the container
+# Copy application code
 COPY . .
 
-# Expose the application port
-EXPOSE 8080
+# Create directories for models and vector store
+RUN mkdir -p /app/models/embedding
+RUN mkdir -p /app/vector_store
 
-# Set the entrypoint for FastAPI with Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Download model and vector store from GCS at startup
+COPY startup.sh .
+RUN chmod +x startup.sh
+
+EXPOSE 8000
+
+# Use startup script as entrypoint
+ENTRYPOINT ["./startup.sh"]
