@@ -1,12 +1,12 @@
 # Menggunakan image dasar Python
-FROM python:3.9-slim
+FROM python:3.10
 
 # Set work directory
 WORKDIR /app
 
 # Copy requirements dan install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Menyalin aplikasi ke dalam container
 COPY . .
