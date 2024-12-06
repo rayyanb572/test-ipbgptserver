@@ -1,31 +1,18 @@
-FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+# Menggunakan image dasar Python
+FROM python:3.9-slim
 
-# Install Python and dependencies
-RUN apt-get update && apt-get install -y \
-    python3.9 \
-    python3-pip \
-    git
-
+# Set work directory
 WORKDIR /app
 
-# Copy requirements
+# Copy requirements dan install dependencies
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install dependencies
-RUN pip install -r requirements.txt
-
-# Copy application code
+# Menyalin aplikasi ke dalam container
 COPY . .
 
-# Create directories for models and vector store
-RUN mkdir -p /app/models/embedding
-RUN mkdir -p /app/vector_store
+# Set environment variable untuk PORT
+ENV PORT=8080
 
-# Download model and vector store from GCS at startup
-COPY startup.sh .
-RUN chmod +x startup.sh
-
-EXPOSE 8000
-
-# Use startup script as entrypoint
-ENTRYPOINT ["./startup.sh"]
+# Jalankan aplikasi FastAPI
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
